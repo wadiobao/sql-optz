@@ -1,0 +1,22 @@
+# Maven
+target/
+**/target/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+
+# IntelliJ
+.idea/
+*.iml
+
+# Java
+*.class
+*.log
+
+# Environment
+.env
+.env.*
+!.env.example
