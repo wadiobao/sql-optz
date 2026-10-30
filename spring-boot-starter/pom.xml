@@ -1,28 +1,33 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.wdi.sql</groupId>
-    <artifactId>sql-optz</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
-  <artifactId>spring-boot-starter</artifactId>
-  <dependencies>
-    <dependency>
-        <groupId>com.wdi.sql</groupId>
-        <artifactId>core</artifactId>
-        <version>${project.version}</version>
-    </dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.wadiobao</groupId>
+		<artifactId>sql-optz-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>sql-optz-spring-boot-starter</artifactId>
+	<dependencies>
+		<dependency>
+			<groupId>io.github.wadiobao</groupId>
+			<artifactId>sql-optz-core</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>com.wdi.sql</groupId>
-        <artifactId>jdbc-proxy</artifactId>
-        <version>${project.version}</version>
-    </dependency>
+		<dependency>
+			<groupId>io.github.wadiobao</groupId>
+			<artifactId>sql-optz-jdbc-proxy</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-autoconfigure</artifactId>
-        <version>3.5.6</version>
-    </dependency>
-</dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+	</dependencies>
 </project>
