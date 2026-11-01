@@ -1,4 +1,4 @@
-package io.github.wadiobao.sqloptz.internal;
+package io.github.wadiobao.sqloptz.internal.parse;
 
 import java.util.List;
 

@@ -2,8 +2,9 @@ package io.github.wadiobao.sqloptz.engine;
 
 import io.github.wadiobao.sqloptz.api.*;
 import io.github.wadiobao.sqloptz.api.SqlGuardViolationException.Reason;
-import io.github.wadiobao.sqloptz.internal.ParsedSql;
-import io.github.wadiobao.sqloptz.internal.SqlParser;
+import io.github.wadiobao.sqloptz.internal.parse.ParsedSql;
+import io.github.wadiobao.sqloptz.internal.parse.SqlParser;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
