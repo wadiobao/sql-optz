@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="https://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.wadiobao</groupId>
@@ -11,9 +11,9 @@
 		flags anti-patterns, and explains slow queries.</description>
 	<url>https://github.com/wadiobao/sql-optz</url>
 	<modules>
-		<module>sql-optz-core</module>
-		<module>sql-optz-jdbc-proxy</module>
-		<module>sql-optz-spring-boot-starter</module>
+		<module>core</module>
+		<module>jdbc-proxy</module>
+		<module>spring-boot-starter</module>
 	</modules>
 	<properties>
 		<maven.compiler.release>17</maven.compiler.release>
