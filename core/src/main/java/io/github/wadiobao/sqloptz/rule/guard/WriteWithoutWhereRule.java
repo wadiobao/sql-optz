@@ -27,11 +27,13 @@ public final class WriteWithoutWhereRule implements SqlRule {
     }
 
     @Override
-    public RuleResult evaluate(RuleContext context) {
+    public RuleResult detect(RuleContext context) {
         for (StatementInfo s : context.info().statements()) {
             boolean write = s.kind() == StatementKind.UPDATE || s.kind() == StatementKind.DELETE;
             if (write && !s.hasWhere()) {
-                return RuleResult.block(s.kind() + " without a WHERE clause would affect every row");
+                return RuleResult.block(
+                        s.kind() + " without a WHERE clause would affect every row",
+                        "Add a WHERE clause, or run the statement outside the guarded connection");
             }
         }
         return RuleResult.pass();
