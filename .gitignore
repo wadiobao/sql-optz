@@ -1,6 +1,8 @@
 # Maven
 target/
 **/target/
+.flattened-pom.xml
+dependency-reduced-pom.xml
 
 # Eclipse
 .classpath
@@ -12,9 +14,16 @@ target/
 .idea/
 *.iml
 
-# Java
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+
+# Java / Crash dumps
 *.class
 *.log
+hs_err_pid*
 
 # Environment
 .env
