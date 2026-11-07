@@ -75,3 +75,14 @@ jobs:
             **/target/surefire-reports
             **/target/failsafe-reports
           if-no-files-found: ignore
+
+  ci-ok:
+    name: ci-ok
+    if: always()
+    needs: [build, postgres-versions]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any job did not succeed
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
+
