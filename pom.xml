@@ -48,7 +48,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- Phiên bản ví dụ: nâng lên bản ổn định mới nhất -->
-    <jsqlparser.version>5.3</jsqlparser.version>
+    <jsqlparser.version>5.4.238</jsqlparser.version>
     <caffeine.version>3.1.8</caffeine.version>
     <slf4j.version>2.0.13</slf4j.version>
     <micrometer.version>1.13.0</micrometer.version>
@@ -80,7 +80,7 @@
 
       <!-- Bên thứ ba -->
       <dependency>
-        <groupId>com.github.jsqlparser</groupId>
+        <groupId>com.manticore-projects.jsqlformatter</groupId>
         <artifactId>jsqlparser</artifactId>
         <version>${jsqlparser.version}</version>
       </dependency>

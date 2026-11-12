@@ -15,7 +15,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.github.jsqlparser</groupId>
+      <groupId>com.manticore-projects.jsqlformatter</groupId>
       <artifactId>jsqlparser</artifactId>
     </dependency>
     <dependency>
