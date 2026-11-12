@@ -7,6 +7,7 @@ import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.github.wadiobao.sqloptz.api.ParseStatus;
 import io.github.wadiobao.sqloptz.api.SqlStatementInfo;
 import io.github.wadiobao.sqloptz.api.StatementInfo;
+import net.sf.jsqlparser.parser.AbstractJSqlParser;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.Statements;
@@ -57,7 +58,7 @@ import java.util.concurrent.ForkJoinPool;
 public final class SqlParser {
 
     private final ParserConfig config;
-    private final StatementAnalyzer analyzer = new StatementAnalyzer();
+    private final StatementAnalyzer analyzer;
     private final Cache<String, ParsedSql> cache;
 
     /**
@@ -77,6 +78,7 @@ public final class SqlParser {
      */
     SqlParser(ParserConfig config, Ticker ticker, Executor executor) {
         this.config = Objects.requireNonNull(config, "config");
+        this.analyzer = new StatementAnalyzer(config.pureFunctions());
         this.cache = Caffeine.newBuilder()
                 .maximumWeight(config.cacheMaxWeight())
                 .weigher((String sql, ParsedSql parsed) -> Math.max(1, sql.length()))
@@ -147,7 +149,7 @@ public final class SqlParser {
                 }
                 statements = parseStatements(sql, true, remaining);
             }
-            return toParsed(statements);
+            return toParsed(statements, sql);
         } catch (Exception | StackOverflowError e) {
             boolean timedOut = System.nanoTime() - start >= budgetNanos;
             return ParsedSql.failed(timedOut ? ParseStatus.TIMEOUT : ParseStatus.FAILED, shortMessage(e));
@@ -157,6 +159,8 @@ public final class SqlParser {
     private Statements parseStatements(String sql, boolean complex, long budgetNanos) throws Exception {
         long timeoutMillis = Math.max(1L, budgetNanos / 1_000_000L);
         return CCJSqlParserUtil.parseStatements(sql, parser -> parser
+                .withDialect(AbstractJSqlParser.Dialect.POSTGRESQL) // dollar strings, E'...', PostgreSQL string rules
+                .withBlankLinesAsSeparator(false) // PostgreSQL does not treat blank lines as separators
                 .withUnsupportedStatements() // keep unknown statements as raw text instead of failing
                 .withAllowComplexParsing(complex) // slower, accepts deeply nested expressions
                 .withTimeOut(timeoutMillis));
@@ -164,7 +168,7 @@ public final class SqlParser {
         // parse.
     }
 
-    private ParsedSql toParsed(Statements statements) {
+    private ParsedSql toParsed(Statements statements, String sql) {
         if (statements == null || statements.size() == 0) {
             return ParsedSql.failed(ParseStatus.FAILED, "no statement parsed");
         }
@@ -179,7 +183,20 @@ public final class SqlParser {
             ast.add(statement);
             infos.add(analyzer.analyze(statement));
         }
-        return new ParsedSql(new SqlStatementInfo(ParseStatus.OK, infos, null), ast);
+        return new ParsedSql(
+                new SqlStatementInfo(ParseStatus.OK, infos, null, hasInteriorSemicolon(sql)), ast);
+    }
+
+    /** True if a semicolon appears anywhere except as the last non-blank character. */
+    static boolean hasInteriorSemicolon(String sql) {
+        int end = sql.length();
+        while (end > 0 && Character.isWhitespace(sql.charAt(end - 1))) {
+            end--;
+        }
+        if (end > 0 && sql.charAt(end - 1) == ';') {
+            end--;
+        }
+        return sql.substring(0, end).indexOf(';') >= 0;
     }
 
     /**

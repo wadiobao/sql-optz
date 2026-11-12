@@ -6,23 +6,32 @@ import java.util.Objects;
 /**
  * Immutable result of parsing a SQL text, which may contain several statements.
  *
- * <p>When {@link #status()} is {@link ParseStatus#OK}, {@link #statements()} holds one entry
- * per statement, in the order they appear. For every other status the list is empty and
- * nothing is known about the text. A text is never reported as {@code OK} when only part of
- * it could be parsed.
+ * <p>When {@link #status()} is {@link ParseStatus#OK}, {@link #statements()} holds one entry per
+ * statement, in the order they appear. For every other status the list is empty and nothing is
+ * known about the text. A text is never reported as {@code OK} when only part of it could be
+ * parsed.
  *
- * <p>Instances are safe to share between threads. Results are cached, so the same instance
- * may be returned for repeated calls with the same text.
+ * <p>Instances are safe to share between threads and may be returned for repeated calls with the
+ * same text.
  *
- * @param status       the outcome of parsing; never {@code null}
- * @param statements   the statements found, in order; never {@code null}, unmodifiable, empty
- *                     unless {@code status} is {@link ParseStatus#OK}
- * @param errorMessage a short description of the failure, or {@code null} when {@code status}
- *                     is {@link ParseStatus#OK}. It never contains the original SQL text,
- *                     because that text may hold sensitive data
+ * @param status            the outcome of parsing; never {@code null}
+ * @param statements        the statements found, in order; never {@code null}, unmodifiable, empty
+ *                          unless {@code status} is {@link ParseStatus#OK}
+ * @param errorMessage      short description of the failure, or {@code null} when {@code status}
+ *                          is {@link ParseStatus#OK}; never contains the original SQL text
+ * @param interiorSemicolon {@code true} if a semicolon appears anywhere other than as the final
+ *                          character of the text. This is a plain character check that ignores
+ *                          strings and comments, so it can be {@code true} for a single statement
+ *                          (for example {@code SELECT 'a;b'}). It exists as a safety net against
+ *                          disagreements between the parser and the database about where a
+ *                          statement ends
  * @since 0.1.0
  */
-public record SqlStatementInfo(ParseStatus status, List<StatementInfo> statements, String errorMessage) {
+public record SqlStatementInfo(
+        ParseStatus status,
+        List<StatementInfo> statements,
+        String errorMessage,
+        boolean interiorSemicolon) {
 
     /**
      * Creates a result, making a defensive copy of {@code statements}.
@@ -45,10 +54,7 @@ public record SqlStatementInfo(ParseStatus status, List<StatementInfo> statement
     }
 
     /**
-     * Tells whether the text contains more than one statement.
-     *
-     * <p>Statements separated by a semicolon are reported as separate entries. A semicolon
-     * inside a string literal does not separate statements.
+     * Tells whether the text contains more than one statement, according to the parser.
      *
      * @return {@code true} if {@link #statements()} has more than one element
      */
@@ -64,6 +70,6 @@ public record SqlStatementInfo(ParseStatus status, List<StatementInfo> statement
      * @return a result with an empty statement list
      */
     public static SqlStatementInfo failed(ParseStatus status, String message) {
-        return new SqlStatementInfo(status, List.of(), message);
+        return new SqlStatementInfo(status, List.of(), message, false);
     }
 }

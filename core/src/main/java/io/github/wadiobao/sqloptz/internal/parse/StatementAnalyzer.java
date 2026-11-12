@@ -1,8 +1,9 @@
 package io.github.wadiobao.sqloptz.internal.parse;
 
 import io.github.wadiobao.sqloptz.api.*;
-import net.sf.jsqlparser.expression.operators.relational.*; // nếu cần
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.StatementFeatures;
+import net.sf.jsqlparser.statement.StmtFeature;
 import net.sf.jsqlparser.statement.UnsupportedStatement;
 import net.sf.jsqlparser.statement.alter.Alter;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -16,9 +17,19 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.TablesNamesFinder;
+
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
+import java.util.function.Predicate;
 
 final class StatementAnalyzer {
+
+    private final Predicate<String> pure;
+
+    StatementAnalyzer(Set<String> pureFunctions) {
+        this.pure = name -> pureFunctions.contains(name.toLowerCase(Locale.ROOT));
+    }
 
     StatementInfo analyze(Statement s) {
         StatementKind kind = kindOf(s);
@@ -34,7 +45,30 @@ final class StatementAnalyzer {
         } else if (s instanceof Delete d) {
             hasWhere = d.getWhere() != null;
         }
-        return new StatementInfo(kind, tablesOf(s), hasWhere, hasLimit, selectsAll);
+        return new StatementInfo(kind, tablesOf(s), hasWhere, hasLimit, selectsAll, effectsOf(s));
+    }
+
+    /**
+     * Asks the parser what the statement may do. If the analysis itself fails, the answer is the
+     * most pessimistic one, so a guard blocks rather than lets the statement through.
+     */
+    private Effects effectsOf(Statement s) {
+        try {
+            StatementFeatures f = s.getFeatures(pure);     // predicate lists the functions known to be harmless
+            Set<String> unresolved = f.getUnresolvedReferences() == null
+                    ? Set.of() : new HashSet<>(f.getUnresolvedReferences());
+            return new Effects(
+                    f.may(StmtFeature.READS_DATA),
+                    f.returnsResultSet(),
+                    f.mayModifyData(),
+                    f.may(StmtFeature.MODIFIES_SCHEMA),
+                    f.may(StmtFeature.MODIFIES_SESSION),
+                    f.may(StmtFeature.MODIFIES_TRANSACTION),
+                    f.isOpaque(),
+                    unresolved);
+        } catch (RuntimeException | StackOverflowError e) {
+            return Effects.UNKNOWN;
+        }
     }
 
     private StatementKind kindOf(Statement s) {
@@ -59,8 +93,6 @@ final class StatementAnalyzer {
         if (s instanceof UnsupportedStatement)
             return Set.of();
         try {
-            // Tạo MỚI mỗi lần (visitor có trạng thái). Chữ ký thay đổi giữa 4.x và 5.x:
-            // nếu IDE báo lỗi, đổi "new TablesNamesFinder<Void>()" cho khớp bản bạn dùng.
             return new TablesNamesFinder<Void>().getTables(s);
         } catch (RuntimeException e) {
             return Set.of();
